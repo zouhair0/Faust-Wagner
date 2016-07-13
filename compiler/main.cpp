@@ -43,6 +43,7 @@
 #include "compile_scal.hh"
 #include "compile_vect.hh"
 #include "compile_sched.hh"
+#include "compile_wagner.hh"
 
 #include "propagate.hh"
 #include "errormsg.hh"
