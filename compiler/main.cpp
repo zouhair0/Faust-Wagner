@@ -113,6 +113,7 @@ Tree			gExpandedDefList;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
+bool            gWagnerSwitch = false;
 bool            gTimingSwitch   = false;
 bool            gDrawSignals    = false;
 bool            gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
@@ -227,7 +228,12 @@ bool process_cmdline(int argc, char* argv[])
 			gDetailsSwitch = true;
 			i += 1;
 
-        } else if (isCmd(argv[i], "-a", "--architecture")) {
+        }
+		  else if (isCmd (argv[i], "-w", "--Wagner")){
+	        gWagnerSwitch = true;
+	        i += 1;
+	    } 
+		  else if (isCmd(argv[i], "-a", "--architecture")) {
             gArchFile = argv[i+1];
             i += 2;
 
@@ -781,6 +787,13 @@ int main (int argc, char* argv[])
 	Compiler* C;
 	if (gSchedulerSwitch)   C = new SchedulerCompiler(gClassName, "dsp", numInputs, numOutputs);
 	else if (gVectorSwitch) C = new VectorCompiler(gClassName, "dsp", numInputs, numOutputs);
+    else if (gWagnerSwitch) 
+				{
+				   cerr << "process = " << boxpp (process) << ";\n";
+                   cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
+				   cerr <<"output signals are\n";
+			       C = new WagnerCompiler (gClassName, "dsp", numInputs, numOutputs);
+				}
 	else                    C = new ScalarCompiler(gClassName, "dsp", numInputs, numOutputs);
 
 	if (gPrintXMLSwitch || gPrintDocSwitch) C->setDescription(new Description());

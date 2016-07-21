@@ -11,11 +11,16 @@
 // #include "property.hh"
 // #include "xtended.hh"
 
+
+
+
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Compile a list of FAUST signals into a Wagner Code
  */
 ///////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -26,8 +31,6 @@ protected:RateInferrer * fRates;
   bool fHasIota;
 
 public:
-
-
 
     WagnerCompiler (const string & name, const string & super, int numInputs,
 		    int numOutputs):Compiler (name, super, numInputs,

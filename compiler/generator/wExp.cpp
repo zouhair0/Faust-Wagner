@@ -4,6 +4,7 @@
 #include <array>
 #include <tuple>
 #include <iostream>
+#include "tree.hh"
 
 using namespace std;
 
@@ -52,7 +53,7 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////
-// Variables (input and output)                                                         //
+// Variables (input and output)                                       //
 ////////////////////////////////////////////////////////////////////////
 class wVar1 : public wExp {
 
@@ -100,31 +101,15 @@ public:
 
   std::string to_string() const {
 
-    return "BinOp: "
+    return "("
       + std::get<0>(args)->to_string()
       + op
-      + std::get<1>(args)->to_string();
+      + std::get<1>(args)->to_string()
+      + ")";
   }
 
 };
 
-////////////////////////////////////////////////////////////////////////
-// Tuples                                                             //
-////////////////////////////////////////////////////////////////////////
-class wTuple : public wExp {
-
-public:
-
-  std::vector<wExp*> elems;
-
-  wTuple(std::initializer_list<wExp*> l) : elems(l) { }
-  wTuple(std::vector<wExp*> l) : elems(l) { }
-
-  std::string to_string() const {
-    return "Tuple";
-  }
-
-};
 ////////////////////////////////////////////////////////////////////////
 // Mathematic primitive fonctions                                     //
 ////////////////////////////////////////////////////////////////////////
@@ -133,17 +118,23 @@ class wMathF : public wExp {
 public:
 
   string f_name;
-  wExp   *f_exp;
-  //int arity;
+  std::vector<wExp*> elems;
+  
 
-  wMathF(string e1, wExp *e2) : f_name(e1), f_exp(e2) { }
+  wMathF(string e1,std::vector<wExp*> vec) : f_name(e1),elems(vec) { }
 
   std::string to_string() const {
-    return f_name+"("+
-           f_exp->to_string() +
-	   ")";
+	string s;
+    s = f_name+"(";
+		int a=elems.size();   
+	       for(int j=0; j < a ; j++)
+           {s  += elems[j]->to_string();
+			if(j<a-1)
+			s=s+",";
+		   }
+		   s= s+")";
+	return s;
   }
-
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -159,7 +150,9 @@ public:
   wProj(wExp *exp, int idx) : p_exp(exp), p_idx(idx) { }
 
   std::string to_string() const {
-    return "Proj";
+    return "Proj"
+		   +std::to_string(p_idx)+" "
+	       +p_exp->to_string();
   }
 
 };
@@ -180,7 +173,7 @@ public:
   }
 
 };
-class wPrefix : public wExp {
+/*class wPrefix : public wExp {
 
 public:
 
@@ -213,7 +206,7 @@ public:
       +std::get<1>(args)->to_string()
       +")";
  }
-};
+};*/
 class wFixDelay : public wExp {
 
 public:
@@ -237,15 +230,168 @@ class wFeed : public wExp {
 
 public:
 
-  std::vector<wExp*> eqns;
-
-  wFeed(std::initializer_list<wExp*> l) : eqns(l) { }
+  //std::vector<wExp*> eqns;
+  //wFeed(std::initializer_list<wExp*> l) : eqns(l) { }
+   wExp* exp;
+   wFeed(wExp* ex) :exp(ex) {}
 
   std::string to_string() const {
-    return "Feed";
+    return "Feed "+exp->to_string();
   }
 };
+class wFeed1 : public wExp {
 
+public:
+
+  //std::vector<wExp*> eqns;
+  //wFeed(std::initializer_list<wExp*> l) : eqns(l) { }
+   wExp* exp;
+   string x;
+   wFeed1(wExp* ex, string s) :exp(ex),x(s) {}
+
+  std::string to_string() const {
+    return "Feed "+
+		   x+
+		   exp->to_string();
+  }
+};
+class wRef : public wExp {
+
+public:
+
+  int ref;
+
+  wRef(int val) : ref(val) { }
+
+  std::string to_string() const {
+    return "REF["+std::to_string(ref)+"]";
+  }
+
+};
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+class wTable : public wExp {
+
+public:
+
+  std::tuple<wExp*, wExp*> args;
+
+  wTable(wExp* e1, wExp* e2) : args(e1,e2) { }
+
+  std::string to_string() const {
+
+    return "table("
+      + std::get<0>(args)->to_string()
+      + ","
+      +std::get<1>(args)->to_string()
+      +")";
+ }
+};
+class wWRTbl : public wExp {
+
+public:
+
+  std::tuple<wExp*, wExp*, wExp*> args;
+
+  wWRTbl(wExp* e1, wExp* e2, wExp* e3) : args(e1,e2,e3) { }
+
+  std::string to_string() const {
+
+    return std::get<0>(args)->to_string() 
+      +"["+std::get<1>(args)->to_string()+"]:=("
+      +std::get<2>(args)->to_string()
+      +")";
+ }
+};
+////////////////////////////////////////////////////////////////////////
+// Tuples                                                             //
+////////////////////////////////////////////////////////////////////////
+class wTuple : public wExp {
+
+public:
+
+  std::vector<wExp*> elems;
+  int n;
+
+  wTuple(std::initializer_list<wExp*> l) : elems(l) { }
+  wTuple(std::vector<wExp*> l, int k) : elems(l), n(k) { }
+
+  std::string to_string() const {
+	string s;
+	 
+	       for(int j=0; j < n ; j++)
+           {s  = s+ elems[j]->to_string();
+			if(j < n-1)
+				s=s+","; 
+				
+		   }
+    return s;
+  }
+
+};
+class wError : public wExp {
+
+public:
+
+  //Tree sig;
+  string s;
+  
+	wError(string err) : s(err) { }
+
+  std::string to_string() const {
+    return s+" NOT A SIGNAL ";
+  }
+
+};
+class wFun : public wExp {
+
+public:
+
+  std::vector<wExp*> elems;
+  string name;
+
+  wFun(string s , std::vector<wExp*> l) : elems(l) { }
+  
+  std::string to_string() const {
+	string s;
+	int n=elems.size();
+	       s=name;
+	       for(int j=0; j < n ; j++)
+           {s  = s+ elems[j]->to_string();
+			if(j < n-1)
+				s=s+","; 
+		   }
+			s=s+")";
+    return s;
+  }
+};
+class wUi : public wExp {
+
+public:
+
+  std::vector<wExp*> elems;
+  string name;
+  string label;
+
+  wUi(string n, string lb, std::vector<wExp*> l) : name(n), label(lb), elems(l) { }
+  wUi(string n, string lb) : name(n), label(lb) { }
+ 
+  std::string to_string() const {
+	string s=name+label;
+	int n=elems.size();
+	if(n!=1)
+	s=s+","; 
+	       for(int j=0; j < n ; j++)
+           {s  = s+ elems[j]->to_string();
+			if(j < n-1)
+				s=s+","; 
+		   }
+		   s=s+")";
+    return s;
+  }
+};
+	
 /*int main() {
 
   auto a1 = wInteger(1);
