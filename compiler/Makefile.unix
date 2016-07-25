@@ -313,6 +313,7 @@ generator/sharing.o: ../architecture/faust/gui/UI.h ../architecture/faust/gui/Pa
 generator/sharing.o: ../architecture/faust/gui/meta.h signals/sigtyperules.hh signals/sigraterules.hh
 generator/sharing.o: generator/occurences.hh extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
 generator/sharing.o: signals/sigprint.hh
+generator/compile_wagner.o: generator/compile_wagner.hh generator/wExp.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
 normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
