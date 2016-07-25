@@ -277,34 +277,41 @@ public:
 
   wUi(string s, string lb, std::vector<wExp*> l) : name(s), label(lb), elems(l) { }
   wUi(string s, string lb) : name(s), label(lb) { }
- 
+
   std::string to_string() const {
-	string s=name+"("+label;
-	int n=elems.size();
-	if(n!=0)
-	s=s+","; 
-	       for(int j=0; j < n ; j++)
-           {s  = s+ elems[j]->to_string();
+
+    string s = name + "(" + label + ")";
+
+    /*
+      int n=elems.size();
+
+      if(n!=0)
+      s=s+","; 
+      for(int j=0; j < n ; j++)
+      {s  = s+ elems[j]->to_string();
 			if(j < n-1)
 				s=s+","; 
 		   }
 		   s=s+")";
+    */
     return s;
   }
 };
+
 class wError : public wExp {
 
 public:
 
   //Tree sig;
   string s;
-  
-	wError(string err) : s(err) { }
+
+  wError(string err) : s(err) { }
 
   std::string to_string() const {
-    return s+" NOT A SIGNAL ";
+
+    return "\"" + s + " is NOT A SIGNAL \"";
+
   }
 
 };
 
-	
