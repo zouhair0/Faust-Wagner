@@ -787,17 +787,15 @@ int main (int argc, char* argv[])
 	Compiler* C;
 	if (gSchedulerSwitch)   C = new SchedulerCompiler(gClassName, "dsp", numInputs, numOutputs);
 	else if (gVectorSwitch) C = new VectorCompiler(gClassName, "dsp", numInputs, numOutputs);
-    else if (gWagnerSwitch) 
-				{
-				   cerr << "process = " << boxpp (process) << ";\n";
-                   cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
-				   cerr <<"output signals are\n";
-			       C = new WagnerCompiler (gClassName, "dsp", numInputs, numOutputs);
-				}
-	else                    C = new ScalarCompiler(gClassName, "dsp", numInputs, numOutputs);
+        else if (gWagnerSwitch) {
+                                C = new WagnerCompiler (gClassName, "dsp", numInputs, numOutputs);
+                                cerr << "process = "   << boxpp (process) << ";\n";
+                                cerr << "process has " << numInputs       << " inputs, and " << numOutputs <<" outputs" << endl;
+                                cerr << "output signals are\n";
+        } else                  C = new ScalarCompiler(gClassName, "dsp", numInputs, numOutputs);
 
 	if (gPrintXMLSwitch || gPrintDocSwitch) C->setDescription(new Description());
-	
+
 	C->compileMultiSignal(lsignals);
 
 	endTiming("compilation");
