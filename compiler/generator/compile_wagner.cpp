@@ -408,7 +408,7 @@ ToWagnerExp (Tree sig)
 void
 WagnerCompiler::compileMultiSignal (Tree L)
 {
-  auto printw = false;
+  auto printw = true;
 
   auto wexp = ToWagnerExp(L);
 
