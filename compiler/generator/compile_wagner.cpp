@@ -73,48 +73,6 @@ int binopp[] = {
 };
 
 
-string ToWagner (Tree sig, int prec = 0);
-wExp *ToWagnerExp (Tree sig);
-
-Tree recids_nil = tree (symbol ("wagner_nil"));
-Tree recids = recids_nil;
-
-Tree
-WagnerCompiler::prepareWagner (Tree LS)
-{
-
-  Tree L1 = deBruijn2Sym (LS);	// convert debruijn recursion into symbolic recursion
-
-  Tree L2 = simplify (L1);	// simplify by executing every computable operation
-  Tree L3 = privatise (L2);	// Un-share tables with multiple writers
-  string s;
-
-  //cerr << ToWagner (LS, 0) + "\n";
-  for (Tree t1; recids != recids_nil && isTree (recids, recids->node (), t1);)
-    {
-      s = "\n recursive signal is : \n";
-      Tree n = (Tree) recids->node ().getPointer ();
-      s = s + ToWagner (n, 0) + "=";
-
-      recids = t1;
-      s = s + ToWagner (n->getProperty (tree (symbol ("RECDEF"))), 0);
-      cerr << s;
-
-    }
-  cerr << "\nwith WagnerExp\n";
-  cerr << ToWagnerExp (LS)->to_string () + "\n";
-
-  exit (0);
-  return L3;
-}
-
-
-void
-WagnerCompiler::compileMultiSignal (Tree L)
-{
-  L = prepareWagner (L);
-}
-
 wExp *
 ToWagnerExp (Tree sig)
 {
@@ -405,6 +363,34 @@ ToWagnerExp (Tree sig)
     }
 }
 
+void
+WagnerCompiler::compileMultiSignal (Tree L)
+{
+  cerr << "\nwith WagnerExp\n";
+  cerr << ToWagnerExp(L)->to_string () + "\n";
+
+  exit(0);
+}
+
+
+void
+WagnerCompiler::compileSingleSignal (Tree sig)
+{
+}
+
+Tree
+WagnerCompiler::prepare (Tree LS)
+{
+}
+
+Tree
+WagnerCompiler::prepare2 (Tree LS)
+{
+}
+
+
+/* Ancien to Wagner
+
 string
 ToWagner (Tree sig, int prec)
 {
@@ -523,21 +509,22 @@ ToWagner (Tree sig, int prec)
       s = s + oss.str ();
       return s;
     }
-  else if (isRef (sig, x))
-    {
-      s = tree2str (x);
-      static Tree seen = NULL;
-      if (seen == NULL)
-	{
-	  seen = tree (symbol ("wagner"));
-	}
-      if (sig->getProperty (seen) == NULL)
-	{
-	  sig->setProperty (seen, seen);
-	  recids = tree (Node ((void *) sig), recids);
-	}
-      return s;
-    }
+  // This has to be fixed like in ppsig using an enviroment.
+  // else if (isRef (sig, x))
+  //   {
+  //     s = tree2str (x);
+  //     static Tree seen = NULL;
+  //     if (seen == NULL)
+  //       {
+  //         seen = tree (symbol ("wagner"));
+  //       }
+  //     if (sig->getProperty (seen) == NULL)
+  //       {
+  //         sig->setProperty (seen, seen);
+  //         recids = tree (Node ((void *) sig), recids);
+  //       }
+  //     return s;
+  //   }
 
 
   else if (isSigTable (sig, id, x, y))
@@ -595,18 +582,4 @@ ToWagner (Tree sig, int prec)
     return "--" + (string) tree2str (sig) + "||";
 }
 
-
-void
-WagnerCompiler::compileSingleSignal (Tree sig)
-{
-}
-
-Tree
-WagnerCompiler::prepare (Tree LS)
-{
-}
-
-Tree
-WagnerCompiler::prepare2 (Tree LS)
-{
-}
+*/
