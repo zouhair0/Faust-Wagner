@@ -123,7 +123,46 @@ ToWagnerExp (Tree sig)
   Tree x, y, z, u, le, id, sel, c, label;
   xtended *p = (xtended *) getUserData (sig);
 
-  if (p)
+  if (isList (sig) && len (sig) == 1)
+    {
+      return ToWagnerExp (hd (sig));
+    }
+  else if (isList (sig) && len (sig) > 1)
+    {
+      std::vector < wExp * >vec;
+      Tree tsig = sig;
+      do
+	{
+	  vec.push_back (ToWagnerExp (hd (tsig)));
+	  tsig = tl (tsig);
+	}
+      while (isList (tsig));
+      //while (!isNil (tsig))
+      //{
+      //vec.push_back (ToWagnerExp (hd (tsig)));
+      //tsig = tl (tsig);
+      //}
+      return new wTuple (vec, len (sig));
+    }
+  else if (isProj (sig, &i, x))
+    {
+      return new wProj (ToWagnerExp (x), i);
+    }
+  else if (isRec (sig, x, le))
+    {
+	  std::cerr << "Non Debruijn expression found!\n";
+      return new wFeed1 (ToWagnerExp (le), (string) tree2str (x));
+    }
+  //debruijn notation
+  else if (isRec (sig, le))
+    {
+      return new wFeed (ToWagnerExp (le));
+    }
+   else if (isRef (sig, i))
+    {
+      return new wRef (i);
+    }
+  else if (getUserData(sig))
     {
       int a = sig->arity ();
       std::vector < wExp * >vec;
@@ -133,7 +172,7 @@ ToWagnerExp (Tree sig)
 	  vec.push_back (ToWagnerExp (sig->branch (j)));
 	}
 
-      return new wMathF (p->name (), vec);
+      return new wFun (p->name (), vec);
     }
   else if (isSigInt (sig, &i))
     {
@@ -143,6 +182,10 @@ ToWagnerExp (Tree sig)
     {
       return new wDouble (r);
     }
+   else if ( isSigWaveform(sig) )
+    {
+	  return new wWaveform("waveform{...}");
+	}
   else if (isSigInput (sig, &i))
     {
       return new wVar1 (i);
@@ -150,10 +193,6 @@ ToWagnerExp (Tree sig)
   else if (isSigOutput (sig, &i, x))
     {
       return new wVar2 (i, ToWagnerExp (x));
-    }
-  else if (isSigBinOp (sig, &i, x, y))
-    {
-      return new wBinaryOp (ToWagnerExp (x), ToWagnerExp (y), binopn[i]);
     }
   else if (isSigDelay1 (sig, x))
     {
@@ -163,53 +202,29 @@ ToWagnerExp (Tree sig)
     {
       return new wFixDelay (ToWagnerExp (x), ToWagnerExp (y));
     }
-  else if (isRef (sig, i))
-    {
-      return new wRef (i);
-    }
-  else if (isProj (sig, &i, x))
-    {
-      return new wProj (ToWagnerExp (x), i);
-    }
-  else if (isRec (sig, le))
-    {
-      return new wFeed (ToWagnerExp (le));
-    }
-  else if (isRec (sig, x, le))
-    {
-	  std::cerr << "Non Debruijn expression found!\n";
-      return new wFeed1 (ToWagnerExp (le), (string) tree2str (x));
-    }
-  //else if (isSigGen (sig, x))
-  //{
-	  //return ToWagnerExp(x);
-  //}
   else if (isSigPrefix (sig, x, y))
     {
       std::vector < wExp * >vec (2);
       vec[0] = ToWagnerExp (x);
       vec[1] = ToWagnerExp (y);
-      return new wFun ("prefix(", vec);
-    }
-  else if (isSigAttach (sig, x, y))
-    {
-      std::vector < wExp * >vec (2);
-      vec[0] = ToWagnerExp (x);
-      vec[1] = ToWagnerExp (y);
-      return new wFun ("attach(", vec);
+      return new wFun ("prefix", vec);
     }
   else if (isSigIota (sig, x))
     {
       std::vector < wExp * >vec (1);
       vec[0] = ToWagnerExp (x);
-      return new wFun ("iota(", vec);
+      return new wFun ("iota", vec);
+    }
+  else if (isSigBinOp (sig, &i, x, y))
+    {
+      return new wBinaryOp (ToWagnerExp (x), ToWagnerExp (y), binopn[i]);
     }
   else if (isSigTable (sig, id, x, y))
     {
       std::vector < wExp * >vec (2);
       vec[0] = ToWagnerExp (x);
       vec[1] = ToWagnerExp (y);
-      return new wFun ("table(", vec);
+      return new wFun ("table", vec);
     }
   else if (isSigWRTbl (sig, id, x, y, z))
     {
@@ -217,15 +232,19 @@ ToWagnerExp (Tree sig)
       vec[0] = ToWagnerExp (x);
       vec[1] = ToWagnerExp (y);
       vec[2] = ToWagnerExp (z);
-      return new wFun ("write(", vec);
+      return new wFun ("write", vec);
     }
   else if (isSigRDTbl (sig, x, y))
     {
       std::vector < wExp * >vec (2);
       vec[0] = ToWagnerExp (x);
       vec[1] = ToWagnerExp (y);
-      return new wFun ("read(", vec);
+      return new wFun ("read", vec);
     }
+  else if (isSigGen (sig, x))
+  {
+	  return ToWagnerExp(x);
+  }
   else if (isSigDocConstantTbl (sig, x, y))
     {
       std::vector < wExp * >vec (2);
@@ -267,21 +286,78 @@ ToWagnerExp (Tree sig)
       vec[3] = ToWagnerExp (z);
       return new wFun ("select3", vec);
     }
-
   else if (isSigIntCast (sig, x))
     {
       std::vector < wExp * >vec (1);
       vec[0] = ToWagnerExp (x);
       return new wFun ("int", vec);
     }
-
   else if (isSigFloatCast (sig, x))
     {
       std::vector < wExp * >vec (1);
       vec[0] = ToWagnerExp (x);
       return new wFun ("float", vec);
     }
+  else if ( isSigButton(sig, label) ) 
+     {
+		return new wUi("button", (string) tree2str (label));
+     }
+  else if ( isSigCheckbox(sig, label) )
+     {
+	  return new wUi("checkbox",  (string) tree2str (label));
+	
+     } 
+  else if (isSigVSlider (sig, label, c, x, y, z))
+    {
+      std::vector < wExp * >vec (4);
+      vec[0] = ToWagnerExp (c);
+      vec[1] = ToWagnerExp (x);
+      vec[2] = ToWagnerExp (y);
+      vec[3] = ToWagnerExp (z);
 
+      return new wUi ("vslider", (string) tree2str (label), vec);
+    }
+  else if (isSigHSlider (sig, label, c, x, y, z))
+    {
+      std::vector < wExp * >vec (4);
+      vec[0] = ToWagnerExp (c);
+      vec[1] = ToWagnerExp (x);
+      vec[2] = ToWagnerExp (y);
+      vec[3] = ToWagnerExp (z);
+      return new wUi ("hslider", (string) tree2str (label), vec);
+    }
+  else if (isSigNumEntry (sig, label, c, x, y, z))
+    {
+      std::vector < wExp * >vec (4);
+      vec[0] = ToWagnerExp (c);
+      vec[1] = ToWagnerExp (x);
+      vec[2] = ToWagnerExp (y);
+      vec[3] = ToWagnerExp (z);
+      return new wUi ("nentry", (string) tree2str (label), vec);
+    }
+  else if (isSigVBargraph (sig, label, x, y, z))
+    {
+      std::vector < wExp * >vec (3);
+      vec[0] = ToWagnerExp (x);
+      vec[1] = ToWagnerExp (y);
+      vec[2] = ToWagnerExp (z);
+      return new wUi ("vbargraph", (string) tree2str (label), vec);
+    }
+  else if (isSigHBargraph (sig, label, x, y, z))
+    {
+      std::vector < wExp * >vec (3);
+      vec[0] = ToWagnerExp (x);
+      vec[1] = ToWagnerExp (y);
+      vec[2] = ToWagnerExp (z);
+      return new wUi ("hbargraph", (string) tree2str (label), vec);
+    }
+  else if (isSigAttach (sig, x, y))
+    {
+      std::vector < wExp * >vec (2);
+      vec[0] = ToWagnerExp (x);
+      vec[1] = ToWagnerExp (y);
+      return new wFun ("attach", vec);
+    }
   else if (isSigVectorize (sig, x, y))
     {
       std::vector < wExp * >vec (2);
@@ -295,7 +371,6 @@ ToWagnerExp (Tree sig)
       vec[0] = ToWagnerExp (x);
       return new wFun ("serialize", vec);
     }
-
   else if (isSigVectorAt (sig, x, y))
     {
       std::vector < wExp * >vec (2);
@@ -323,88 +398,6 @@ ToWagnerExp (Tree sig)
       vec[0] = ToWagnerExp (x);
       vec[1] = ToWagnerExp (y);
       return new wFun ("down", vec);
-    }
-  else if ( isSigButton(sig, label) ) 
-     {
-		return new wUi("button", (string) tree2str (label));
-     }
-  else if ( isSigCheckbox(sig, label) )
-     {
-	  return new wUi("checkbox",  (string) tree2str (label));
-	
-     } 
-  else if (isSigVSlider (sig, label, c, x, y, z))
-    {
-      std::vector < wExp * >vec (4);
-	//cerr<<"Heee test\n";
-	//print(label,stderr);
-	//cerr<<"\n";
-      /*vec.push_back(c);
-         vec.push_back(x);
-         vec.push_back(y);
-         vec.push_back(z); */
-      vec[0] = ToWagnerExp (c);
-      vec[1] = ToWagnerExp (x);
-      vec[2] = ToWagnerExp (y);
-      vec[3] = ToWagnerExp (z);
-
-      return new wUi ("vslider(", (string) tree2str (label), vec);
-    }
-  else if (isSigHSlider (sig, label, c, x, y, z))
-    {
-      std::vector < wExp * >vec (4);
-      vec[0] = ToWagnerExp (c);
-      vec[1] = ToWagnerExp (x);
-      vec[2] = ToWagnerExp (y);
-      vec[3] = ToWagnerExp (z);
-      return new wUi ("hslider(", (string) tree2str (label), vec);
-    }
-  else if (isSigNumEntry (sig, label, c, x, y, z))
-    {
-      std::vector < wExp * >vec (4);
-      vec[0] = ToWagnerExp (c);
-      vec[1] = ToWagnerExp (x);
-      vec[2] = ToWagnerExp (y);
-      vec[3] = ToWagnerExp (z);
-      return new wUi ("nentry(", (string) tree2str (label), vec);
-    }
-  else if (isSigVBargraph (sig, label, x, y, z))
-    {
-      std::vector < wExp * >vec (3);
-      vec[0] = ToWagnerExp (x);
-      vec[1] = ToWagnerExp (y);
-      vec[2] = ToWagnerExp (z);
-      return new wUi ("vbargraph(", (string) tree2str (label), vec);
-    }
-  else if (isSigHBargraph (sig, label, x, y, z))
-    {
-      std::vector < wExp * >vec (3);
-      vec[0] = ToWagnerExp (x);
-      vec[1] = ToWagnerExp (y);
-      vec[2] = ToWagnerExp (z);
-      return new wUi ("hbargraph(", (string) tree2str (label), vec);
-    }
-
-  else if (isList (sig) && len (sig) == 1)
-    {
-      return ToWagnerExp (hd (sig));
-    }
-  else if (isList (sig) && len (sig) > 1)
-    {
-      std::vector < wExp * >vec;
-      Tree tsig = sig;
-      do
-	{
-	  vec.push_back (ToWagnerExp (hd (tsig)));
-	  tsig = tl (tsig);
-	}
-      while (isList (tsig));
-      //while (!isNil (tsig))
-      //{
-      //vec.push_back (ToWagnerExp (hd (tsig)));
-      //tsig = tl (tsig);
-      //}
-      return new wTuple (vec, len (sig));
     }
   else
     {

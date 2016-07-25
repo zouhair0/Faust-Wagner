@@ -18,6 +18,7 @@ public:
   wExp() { };
 
   virtual std::string to_string() const = 0;
+  friend ostream& operator<<(ostream& f, const wExp& e);
 
 };
 
@@ -69,13 +70,21 @@ public:
   }
 
 };
+class wWaveform : public wExp {
 
+public:
+
+  string str;
+
+  wWaveform(string mess) : str(mess) {}
+  std::string to_string() const {
+	return str;
+  }
+};
 class wVar2 : public wExp {
 
 public:
 
-  // This choice implies that variable shifting must create a copy of
-  // the constructor.
   int idx;
   wExp* x;
 
@@ -108,33 +117,6 @@ public:
       + ")";
   }
 
-};
-
-////////////////////////////////////////////////////////////////////////
-// Mathematic primitive fonctions                                     //
-////////////////////////////////////////////////////////////////////////
-class wMathF : public wExp {
-
-public:
-
-  string f_name;
-  std::vector<wExp*> elems;
-  
-
-  wMathF(string e1,std::vector<wExp*> vec) : f_name(e1),elems(vec) { }
-
-  std::string to_string() const {
-	string s;
-    s = f_name+"(";
-		int a=elems.size();   
-	       for(int j=0; j < a ; j++)
-           {s  += elems[j]->to_string();
-			if(j<a-1)
-			s=s+",";
-		   }
-		   s= s+")";
-	return s;
-  }
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -173,40 +155,6 @@ public:
   }
 
 };
-/*class wPrefix : public wExp {
-
-public:
-
-  std::tuple<wExp*, wExp*> args;
-
-  wPrefix(wExp* e1, wExp* e2) : args(e1,e2) { }
-
-  std::string to_string() const {
-
-    return "prefix("
-      + std::get<0>(args)->to_string()
-      + ","
-      +std::get<1>(args)->to_string()
-      +")";
-  }
-};
-class wAttach : public wExp {
-
-public:
-
-  std::tuple<wExp*, wExp*> args;
-
-  wAttach(wExp* e1, wExp* e2) : args(e1,e2) { }
-
-  std::string to_string() const {
-
-    return "attach("
-      + std::get<0>(args)->to_string()
-      + ","
-      +std::get<1>(args)->to_string()
-      +")";
- }
-};*/
 class wFixDelay : public wExp {
 
 public:
@@ -269,42 +217,6 @@ public:
 
 };
 ////////////////////////////////////////////////////////////////////////
-//                                                                    //
-////////////////////////////////////////////////////////////////////////
-class wTable : public wExp {
-
-public:
-
-  std::tuple<wExp*, wExp*> args;
-
-  wTable(wExp* e1, wExp* e2) : args(e1,e2) { }
-
-  std::string to_string() const {
-
-    return "table("
-      + std::get<0>(args)->to_string()
-      + ","
-      +std::get<1>(args)->to_string()
-      +")";
- }
-};
-class wWRTbl : public wExp {
-
-public:
-
-  std::tuple<wExp*, wExp*, wExp*> args;
-
-  wWRTbl(wExp* e1, wExp* e2, wExp* e3) : args(e1,e2,e3) { }
-
-  std::string to_string() const {
-
-    return std::get<0>(args)->to_string() 
-      +"["+std::get<1>(args)->to_string()+"]:=("
-      +std::get<2>(args)->to_string()
-      +")";
- }
-};
-////////////////////////////////////////////////////////////////////////
 // Tuples                                                             //
 ////////////////////////////////////////////////////////////////////////
 class wTuple : public wExp {
@@ -330,33 +242,22 @@ public:
   }
 
 };
-class wError : public wExp {
-
-public:
-
-  //Tree sig;
-  string s;
-  
-	wError(string err) : s(err) { }
-
-  std::string to_string() const {
-    return s+" NOT A SIGNAL ";
-  }
-
-};
+////////////////////////////////////////////////////////////////////////
+// Function and Interface                                            //
+////////////////////////////////////////////////////////////////////////
 class wFun : public wExp {
 
 public:
 
   std::vector<wExp*> elems;
-  string name;
+  string f_name;
 
-  wFun(string s , std::vector<wExp*> l) : elems(l) { }
+  wFun(string s, std::vector<wExp*> l) : f_name(s), elems(l) { }
   
   std::string to_string() const {
 	string s;
 	int n=elems.size();
-	       s=name;
+	       s=f_name+"(";
 	       for(int j=0; j < n ; j++)
            {s  = s+ elems[j]->to_string();
 			if(j < n-1)
@@ -374,13 +275,13 @@ public:
   string name;
   string label;
 
-  wUi(string n, string lb, std::vector<wExp*> l) : name(n), label(lb), elems(l) { }
-  wUi(string n, string lb) : name(n), label(lb) { }
+  wUi(string s, string lb, std::vector<wExp*> l) : name(s), label(lb), elems(l) { }
+  wUi(string s, string lb) : name(s), label(lb) { }
  
   std::string to_string() const {
-	string s=name+label;
+	string s=name+"("+label;
 	int n=elems.size();
-	if(n!=1)
+	if(n!=0)
 	s=s+","; 
 	       for(int j=0; j < n ; j++)
            {s  = s+ elems[j]->to_string();
@@ -391,17 +292,19 @@ public:
     return s;
   }
 };
+class wError : public wExp {
+
+public:
+
+  //Tree sig;
+  string s;
+  
+	wError(string err) : s(err) { }
+
+  std::string to_string() const {
+    return s+" NOT A SIGNAL ";
+  }
+
+};
+
 	
-/*int main() {
-
-  auto a1 = wInteger(1);
-  auto a2 = wInteger(2);
-  auto aa = wBinaryOp(a1, a2);
-  auto at = wTuple{a1,a2,aa};
-
-  std::cout << aa.to_string()+"\n";
-  std::cout << at.to_string()+"\n";
-
-}*/
-
-// TODO: Add a template for a dynamic fold/visitor over types.
