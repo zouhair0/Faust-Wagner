@@ -205,9 +205,10 @@ public:
    wFeed(wExp* ex) :exp(ex) {}
 
   std::string to_string() const {
-    return "Feed "+exp->to_string();
+    return "\n Feed =" + exp->to_string();
   }
 };
+
 class wFeed1 : public wExp {
 
 public:
@@ -219,9 +220,9 @@ public:
    wFeed1(wExp* ex, string s) :exp(ex),x(s) {}
 
   std::string to_string() const {
-    return "Feed "+
-		   x+
-		   exp->to_string();
+    return "\n Feed1 " +
+                     x +
+		     exp->to_string();
   }
 };
 class wRef : public wExp {
