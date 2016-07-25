@@ -98,7 +98,7 @@ ToWagnerExp (Tree sig)
   auto iter = hw.find(sig);
 
   if (iter != hw.end()) {
-    return iter->second;
+    return new wHash((void *)sig);
   }
 
   // Else we build a new value.
@@ -412,23 +412,23 @@ WagnerCompiler::compileMultiSignal (Tree L)
 
   auto wexp = ToWagnerExp(L);
 
+  cerr << "************************************************************************" << endl;
+
+  cerr << "Number of elements in the hash: " << ht.size() << endl << endl;
+
+  for (auto& elem: hw) {
+
+    cerr << "[" << elem.first << "]: " << elem.second->to_string() << endl;
+
+  }
+
+  cerr << "************************************************************************" << endl;
+  cerr << "Program is: " << endl << endl;
+
   if (printw) {
     cerr << wexp->to_string () << endl;
   }
 
-  cerr << "Number of elements in the hash: " << ht.size() << endl;
-
-  for (auto& elem: ht) {
-
-    if (elem.second > 1) {
-
-      std::ostringstream oss;
-      oss << ppsig(elem.first);
-      // string str_isg
-
-      cerr << "found a use case: " << elem.second << " | " << oss.str().substr(0,80) << endl;
-    }
-  }
 
   exit(0);
 }
