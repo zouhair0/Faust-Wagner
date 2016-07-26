@@ -27,7 +27,7 @@
 #include "tree.hh"
 #include "node.hh"
 
-
+//#include "binop.hh"
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -76,10 +76,48 @@ int binopp[] = {
 
 
 // Count of number of expressions
-std::unordered_map<Tree, unsigned int> ht(65543);
+std::unordered_map < Tree, unsigned int >
+ht (65543);
 
 // Cache of translation
-std::unordered_map<Tree, wExp*> hw(65543);
+std::unordered_map < Tree, wExp * >hw (65543);
+
+wExp * ToWagnerExp (Tree sig);
+
+void
+WagnerCompiler::compileMultiSignal (Tree L)
+{
+  auto printw = true;
+
+  wExp* wexp = ToWagnerExp (L);
+
+  cerr <<
+    "************************************************************************"
+    << endl;
+
+  cerr << "Number of elements in the hash: " << ht.size () << endl << endl;
+
+for (auto & elem:hw)
+    {
+
+      cerr << "[" << elem.first << "]: "<< *elem.second << endl;
+
+    }
+
+  cerr <<
+    "************************************************************************"
+    << endl;
+  cerr << "Program is: " << endl << endl;
+
+  if (printw)
+    {
+      //cerr << wexp->to_string () << endl;
+	  cerr << *wexp<< endl;
+
+    }
+
+  exit (0);
+}
 
 wExp *
 ToWagnerExp (Tree sig)
@@ -90,16 +128,17 @@ ToWagnerExp (Tree sig)
   xtended *p = (xtended *) getUserData (sig);
 
   // Return value
-  wExp * ret;
+  wExp *ret;
 
   ht[sig]++;
 
   // If sig is in hw, then return the cache value.
-  auto iter = hw.find(sig);
+  auto iter = hw.find (sig);
 
-  if (iter != hw.end()) {
-    return new wHash((void *)sig);
-  }
+  if (iter != hw.end ())
+    {
+      return new wHash ((void *) sig);
+    }
 
   // Else we build a new value.
   if (isList (sig) && len (sig) == 1)
@@ -130,7 +169,7 @@ ToWagnerExp (Tree sig)
     }
   else if (isRec (sig, x, le))
     {
-	  std::cerr << "Non Debruijn expression found!\n";
+      std::cerr << "Non Debruijn expression found!\n";
       ret = new wFeed1 (ToWagnerExp (le), (string) tree2str (x));
     }
   //debruijn notation
@@ -138,11 +177,11 @@ ToWagnerExp (Tree sig)
     {
       ret = new wFeed (ToWagnerExp (le));
     }
-   else if (isRef (sig, i))
+  else if (isRef (sig, i))
     {
       ret = new wRef (i);
     }
-  else if (getUserData(sig))
+  else if (getUserData (sig))
     {
       int a = sig->arity ();
       std::vector < wExp * >vec;
@@ -162,10 +201,10 @@ ToWagnerExp (Tree sig)
     {
       ret = new wDouble (r);
     }
-   else if ( isSigWaveform(sig) )
+  else if (isSigWaveform (sig))
     {
-	  ret = new wWaveform("waveform{...}");
-	}
+      ret = new wWaveform ("waveform{...}");
+    }
   else if (isSigInput (sig, &i))
     {
       ret = new wVar1 (i);
@@ -195,21 +234,27 @@ ToWagnerExp (Tree sig)
       vec[0] = ToWagnerExp (x);
       ret = new wFun ("iota", vec);
     }
-  else if ( isSigFFun(sig, ff, largs) ) {
-    ret = new wError("TODO sigFffun");
-  }
+  else if (isSigFFun (sig, ff, largs))
+    {
+      std::vector < wExp * >vec (1);
+      vec[0] = ToWagnerExp (largs);
+
+      ret = new wFun (ffname (ff), vec);
+    }
   else if (isSigBinOp (sig, &i, x, y))
     {
       ret = new wBinaryOp (ToWagnerExp (x), ToWagnerExp (y), binopn[i]);
     }
 
-  else if ( isSigFConst(sig, type, name, file) )  {
-    ret = new wError("TODO sigFCONST");
-  }
+  else if (isSigFConst (sig, type, name, file))
+    {
+      ret = new wWaveform (tree2str (name));
+    }
 
-  else if ( isSigFVar(sig, type, name, file) )    {
-    ret = new wError("TODO sigFVar");
-  }
+  else if (isSigFVar (sig, type, name, file))
+    {
+      ret = new wWaveform (tree2str (name));
+    }
 
   else if (isSigTable (sig, id, x, y))
     {
@@ -234,9 +279,9 @@ ToWagnerExp (Tree sig)
       ret = new wFun ("read", vec);
     }
   else if (isSigGen (sig, x))
-  {
-	  ret = ToWagnerExp(x);
-  }
+    {
+      ret = ToWagnerExp (x);
+    }
   else if (isSigDocConstantTbl (sig, x, y))
     {
       std::vector < wExp * >vec (2);
@@ -290,15 +335,14 @@ ToWagnerExp (Tree sig)
       vec[0] = ToWagnerExp (x);
       ret = new wFun ("float", vec);
     }
-  else if ( isSigButton(sig, label) )
-     {
-       ret = new wUi("button",    (string) tree2str (label));
-     }
-  else if ( isSigCheckbox(sig, label) )
-     {
-       ret = new wUi("checkbox",  (string) tree2str (label));
-
-     }
+  else if (isSigButton (sig, label))
+    {
+      ret = new wUi ("button", (string) tree2str (label));
+    }
+  else if (isSigCheckbox (sig, label))
+    {
+      ret = new wUi ("checkbox", (string) tree2str (label));
+    }
   else if (isSigVSlider (sig, label, c, x, y, z))
     {
       std::vector < wExp * >vec (4);
@@ -398,40 +442,12 @@ ToWagnerExp (Tree sig)
       ret = new wError ((string) tree2str (sig));
     }
 
-  // Adjouter le valeur:
+  // Adjouter la valeur:
   hw[sig] = ret;
 
   return ret;
 }
 
-
-void
-WagnerCompiler::compileMultiSignal (Tree L)
-{
-  auto printw = true;
-
-  auto wexp = ToWagnerExp(L);
-
-  cerr << "************************************************************************" << endl;
-
-  cerr << "Number of elements in the hash: " << ht.size() << endl << endl;
-
-  for (auto& elem: hw) {
-
-    cerr << "[" << elem.first << "]: " << elem.second->to_string() << endl;
-
-  }
-
-  cerr << "************************************************************************" << endl;
-  cerr << "Program is: " << endl << endl;
-
-  if (printw) {
-    cerr << wexp->to_string () << endl;
-  }
-
-
-  exit(0);
-}
 
 
 void
@@ -439,13 +455,11 @@ WagnerCompiler::compileSingleSignal (Tree sig)
 {
 }
 
-Tree
-WagnerCompiler::prepare (Tree LS)
+Tree WagnerCompiler::prepare (Tree LS)
 {
 }
 
-Tree
-WagnerCompiler::prepare2 (Tree LS)
+Tree WagnerCompiler::prepare2 (Tree LS)
 {
 }
 
