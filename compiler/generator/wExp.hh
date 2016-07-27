@@ -8,9 +8,12 @@
 
 using namespace std;
 
+
 ////////////////////////////////////////////////////////////////////////
 // Abstract class for Wagner expressions                              //
 ////////////////////////////////////////////////////////////////////////
+
+
 class wExp
 {
 
@@ -20,15 +23,12 @@ public:
   {
   };
 
-  virtual ostream& print (ostream& fout) const = 0;
+  virtual ostream & print (ostream & fout) const = 0;
   virtual std::string to_string () const = 0;
-  /*friend ostream& operator<<(ostream& f,wExp& e)
-  {
-	f<<"heeeee";
-	return f;
-  }*/
 
 };
+
+inline ostream & operator << (ostream & file, wExp * e) {return e->print (file);}
 
 ////////////////////////////////////////////////////////////////////////
 // Reference to hash table
@@ -44,24 +44,24 @@ public:
   {
   }
 
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+	ostringstream oss;
+	oss<<ref;
+	out<<"P["<< oss.str () <<"]";
+    return out;
   }
 
   std::string to_string () const
   {
-
     ostringstream oss;
-      oss << ref;
-
+    oss << ref;
       return "P[" + oss.str () + "]";
   }
-
 };
 
 ////////////////////////////////////////////////////////////////////////
-// Integer and double constants                                                  //
+// Integer and double constants                                       //
 ////////////////////////////////////////////////////////////////////////
 class wInteger:public wExp
 {
@@ -73,10 +73,10 @@ public:
     wInteger (int val):value (val)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	out<<value;
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << value;
+    return out;
   }
   std::string to_string () const
   {
@@ -84,7 +84,7 @@ public:
   }
 
 };
-//inline ostream& operator << (ostream& f, const wExp& e) { return e.print(f); }
+
 class wDouble:public wExp
 {
 
@@ -96,9 +96,10 @@ public:
   {
   }
 
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << value;
+    return out;
   }
   std::string to_string () const
   {
@@ -122,9 +123,10 @@ public:
     wVar1 (int v_idx):idx (v_idx)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "IN" << idx;
+    return out;
   }
   std::string to_string () const
   {
@@ -143,9 +145,10 @@ public:
     wVar2 (int v_idx, wExp * e):idx (v_idx), x (e)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "OUT" << idx << x;
+    return out;
   }
 
   std::string to_string () const
@@ -165,9 +168,10 @@ public:
   wWaveform (string mess):str (mess)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << str;
+    return out;
   }
 
   std::string to_string () const
@@ -189,12 +193,11 @@ public:
     wBinaryOp (wExp * e1, wExp * e2, const char *c):args (e1, e2), op (c)
   {
   }
-  //wBinaryOp(wExp *e1, wExp *e2) : args(e1, e2) { }
-  //wBinaryOp(std::tuple<wExp*, wExp*> l) : args(l) { }
 
-    ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "(" << std::get < 0 > (args) << op << std::get < 1 > (args) << ")";
+    return out;
   }
 
   std::string to_string () const
@@ -221,9 +224,10 @@ public:
     wProj (wExp * exp, int idx):p_exp (exp), p_idx (idx)
   {
   }
-    ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "Proj" << std::to_string (p_idx) << " " << p_exp;
+    return out;
   }
 
   std::string to_string () const
@@ -245,9 +249,10 @@ public:
   wDelay1 (wExp * exp):d_exp (exp)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "mem(" << d_exp << ")";
+    return out;
   }
 
   std::string to_string () const
@@ -267,9 +272,10 @@ public:
   {
   }
 
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << std::get < 0 > (args) << "@" << std::get < 1 > (args);
+    return out;
   }
   std::string to_string () const
   {
@@ -287,15 +293,15 @@ class wFeed:public wExp
 
 public:
 
-  //std::vector<wExp*> eqns;
   //wFeed(std::initializer_list<wExp*> l) : eqns(l) { }
   wExp * exp;
   wFeed (wExp * ex):exp (ex)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << " Feed = " << exp;
+    return out;
   }
 
   std::string to_string () const
@@ -309,16 +315,15 @@ class wFeed1:public wExp
 
 public:
 
-  //std::vector<wExp*> eqns;
-  //wFeed(std::initializer_list<wExp*> l) : eqns(l) { }
   wExp * exp;
   string x;
     wFeed1 (wExp * ex, string s):exp (ex), x (s)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "Fees1 =" << x << exp;
+    return out;
   }
 
   std::string to_string () const
@@ -336,9 +341,10 @@ public:
     wRef (int val):ref (val)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "REF[" << ref << "]";
+    return out;
   }
 
   std::string to_string () const
@@ -364,9 +370,15 @@ public:
   wTuple (std::vector < wExp * >l, int k):elems (l), n (k)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    for (int j = 0; j < n; j++)
+      {
+	out << elems[j];
+	if (j < n - 1)
+	  out << ",";
+      }
+    return out;
   }
 
   std::string to_string ()const
@@ -378,7 +390,6 @@ public:
 	s = s + elems[j]->to_string ();
 	if (j < n - 1)
 	  s = s + ",";
-
       }
     return s;
   }
@@ -399,12 +410,21 @@ public:
     wFun (string s, std::vector < wExp * >l):f_name (s), elems (l)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    int n = elems.size ();
+      out << f_name + "(";
+    for (int j = 0; j < n; j++)
+      {
+	out << elems[j];
+	if (j < n - 1)
+	  out << ",";
+      }
+    out << ")";
+    return out;
   }
 
-  std::string to_string () const
+  std::string to_string ()const
   {
     string s;
     int n = elems.size ();
@@ -436,29 +456,42 @@ public:
   wUi (string s, string lb):name (s), label (lb)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << name + "(" + label;
+    int n = elems.size ();
+
+    if (n != 0)
+        out << ",";
+    for (int j = 0; j < n; j++)
+      {
+	out << elems[j];
+	if (j < n - 1)
+	  out << ",";
+      }
+    out << ")";
+
+    return out;
   }
 
   std::string to_string ()const
   {
 
-    string s = name + "(" + label + ")";
+    string s = name + "(" + label;
 
-    /*
-       int n=elems.size();
+    int n = elems.size ();
 
-       if(n!=0)
-       s=s+","; 
-       for(int j=0; j < n ; j++)
-       {s  = s+ elems[j]->to_string();
-       if(j < n-1)
-       s=s+","; 
-       }
-       s=s+")";
-     */
-      return s;
+    if (n != 0)
+        s = s + ",";
+    for (int j = 0; j < n; j++)
+      {
+	s = s + elems[j]->to_string ();
+	if (j < n - 1)
+	  s = s + ",";
+      }
+    s = s + ")";
+
+    return s;
   }
 };
 
@@ -473,9 +506,10 @@ public:
   wError (string err):s (err)
   {
   }
-  ostream & print (ostream& out) const
-  { 
-	return out;
+  ostream & print (ostream & out) const
+  {
+    out << "\"" << s << "is NOT A SIAGNAL \"";
+    return out;
   }
 
   std::string to_string () const
@@ -486,5 +520,3 @@ public:
   }
 
 };
-inline ostream& operator << (ostream& file, const wExp& e) { return e.print(file);}
- 

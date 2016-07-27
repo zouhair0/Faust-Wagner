@@ -82,14 +82,14 @@ ht (65543);
 // Cache of translation
 std::unordered_map < Tree, wExp * >hw (65543);
 
-wExp * ToWagnerExp (Tree sig);
+wExp *ToWagnerExp (Tree sig);
 
 void
 WagnerCompiler::compileMultiSignal (Tree L)
 {
-  auto printw = true;
+  bool printw = true;
 
-  wExp* wexp = ToWagnerExp (L);
+  wExp *wexp = ToWagnerExp (L);
 
   cerr <<
     "************************************************************************"
@@ -100,7 +100,7 @@ WagnerCompiler::compileMultiSignal (Tree L)
 for (auto & elem:hw)
     {
 
-      cerr << "[" << elem.first << "]: "<< *elem.second << endl;
+      cerr << "[" << elem.first << "]: " << elem.second << endl;
 
     }
 
@@ -112,8 +112,7 @@ for (auto & elem:hw)
   if (printw)
     {
       //cerr << wexp->to_string () << endl;
-	  cerr << *wexp<< endl;
-
+      cerr << wexp << endl;
     }
 
   exit (0);
@@ -455,11 +454,13 @@ WagnerCompiler::compileSingleSignal (Tree sig)
 {
 }
 
-Tree WagnerCompiler::prepare (Tree LS)
+Tree
+WagnerCompiler::prepare (Tree LS)
 {
 }
 
-Tree WagnerCompiler::prepare2 (Tree LS)
+Tree
+WagnerCompiler::prepare2 (Tree LS)
 {
 }
 
