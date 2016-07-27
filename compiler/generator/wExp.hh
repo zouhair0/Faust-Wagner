@@ -24,7 +24,6 @@ public:
   };
 
   virtual ostream & print (ostream & fout) const = 0;
-  virtual std::string to_string () const = 0;
 
 };
 
@@ -46,17 +45,8 @@ public:
 
   ostream & print (ostream & out) const
   {
-	ostringstream oss;
-	oss<<ref;
-	out<<"P["<< oss.str () <<"]";
+	out<<"P["<< ref <<"]";
     return out;
-  }
-
-  std::string to_string () const
-  {
-    ostringstream oss;
-    oss << ref;
-      return "P[" + oss.str () + "]";
   }
 };
 
@@ -78,11 +68,7 @@ public:
     out << value;
     return out;
   }
-  std::string to_string () const
-  {
-    return std::to_string (value);
-  }
-
+  
 };
 
 class wDouble:public wExp
@@ -101,11 +87,7 @@ public:
     out << value;
     return out;
   }
-  std::string to_string () const
-  {
-    return std::to_string (value);
-  }
-
+  
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -128,11 +110,7 @@ public:
     out << "IN" << idx;
     return out;
   }
-  std::string to_string () const
-  {
-    return "IN" + std::to_string (idx);
-  }
-
+  
 };
 class wVar2:public wExp
 {
@@ -151,11 +129,6 @@ public:
     return out;
   }
 
-  std::string to_string () const
-  {
-    return "OUT" + std::to_string (idx) + x->to_string ();
-  }
-
 };
 //this class for FConst, FVar and waveforme signals
 class wWaveform:public wExp
@@ -172,11 +145,6 @@ public:
   {
     out << str;
     return out;
-  }
-
-  std::string to_string () const
-  {
-    return str;
   }
 };
 ////////////////////////////////////////////////////////////////////////
@@ -200,14 +168,6 @@ public:
     return out;
   }
 
-  std::string to_string () const
-  {
-
-    return "("
-      + std::get < 0 > (args)->to_string ()
-      + op + std::get < 1 > (args)->to_string () + ")";
-  }
-
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -226,13 +186,8 @@ public:
   }
   ostream & print (ostream & out) const
   {
-    out << "Proj" << std::to_string (p_idx) << " " << p_exp;
+    out << "Proj" << p_idx << " " << p_exp;
     return out;
-  }
-
-  std::string to_string () const
-  {
-    return "Proj" + std::to_string (p_idx) + " " + p_exp->to_string ();
   }
 
 };
@@ -255,11 +210,6 @@ public:
     return out;
   }
 
-  std::string to_string () const
-  {
-    return "mem(" + d_exp->to_string () + ")";
-  }
-
 };
 class wFixDelay:public wExp
 {
@@ -276,13 +226,7 @@ public:
   {
     out << std::get < 0 > (args) << "@" << std::get < 1 > (args);
     return out;
-  }
-  std::string to_string () const
-  {
-
-    return std::get < 0 > (args)->to_string ()
-      + "@" + std::get < 1 > (args)->to_string ();
-  }
+  }  
 };
 ////////////////////////////////////////////////////////////////////////
 // Feedback                                                           //
@@ -304,10 +248,6 @@ public:
     return out;
   }
 
-  std::string to_string () const
-  {
-    return "\n Feed =" + exp->to_string ();
-  }
 };
 
 class wFeed1:public wExp
@@ -325,11 +265,6 @@ public:
     out << "Fees1 =" << x << exp;
     return out;
   }
-
-  std::string to_string () const
-  {
-    return "\n Feed1 " + x + exp->to_string ();
-  }
 };
 class wRef:public wExp
 {
@@ -345,11 +280,6 @@ public:
   {
     out << "REF[" << ref << "]";
     return out;
-  }
-
-  std::string to_string () const
-  {
-    return "REF[" + std::to_string (ref) + "]";
   }
 
 };
@@ -379,19 +309,6 @@ public:
 	  out << ",";
       }
     return out;
-  }
-
-  std::string to_string ()const
-  {
-    string s;
-
-    for (int j = 0; j < n; j++)
-      {
-	s = s + elems[j]->to_string ();
-	if (j < n - 1)
-	  s = s + ",";
-      }
-    return s;
   }
 
 };
@@ -424,20 +341,6 @@ public:
     return out;
   }
 
-  std::string to_string ()const
-  {
-    string s;
-    int n = elems.size ();
-      s = f_name + "(";
-    for (int j = 0; j < n; j++)
-      {
-	s = s + elems[j]->to_string ();
-	if (j < n - 1)
-	  s = s + ",";
-      }
-    s = s + ")";
-    return s;
-  }
 };
 
 class wUi:public wExp
@@ -474,25 +377,6 @@ public:
     return out;
   }
 
-  std::string to_string ()const
-  {
-
-    string s = name + "(" + label;
-
-    int n = elems.size ();
-
-    if (n != 0)
-        s = s + ",";
-    for (int j = 0; j < n; j++)
-      {
-	s = s + elems[j]->to_string ();
-	if (j < n - 1)
-	  s = s + ",";
-      }
-    s = s + ")";
-
-    return s;
-  }
 };
 
 class wError:public wExp
@@ -511,12 +395,4 @@ public:
     out << "\"" << s << "is NOT A SIAGNAL \"";
     return out;
   }
-
-  std::string to_string () const
-  {
-
-    return "\"" + s + " is NOT A SIGNAL \"";
-
-  }
-
 };
