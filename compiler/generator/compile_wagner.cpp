@@ -35,6 +35,7 @@
 #include <vector>
 #include <math.h>
 #include <set>
+#include <deque>
 #include <unordered_map>
 #include <string>
 
@@ -74,47 +75,21 @@ int binopp[] = {
   1, 1, 1
 };
 
-
 // Count of number of expressions
 std::unordered_map < Tree, unsigned int >
 ht (65543);
 
 // Cache of translation
-std::unordered_map < Tree, wExp * >hw (65543);
+//std::unordered_map < Tree, wExp * >hw (65543);
 
-wExp *ToWagnerExp (Tree sig);
+typedef std::unordered_map<Tree, wExp*> local_map;
 
-void
-WagnerCompiler::compileMultiSignal (Tree L)
-{
-  bool printw = true;
+typedef local_map* pmap ;
 
-  wExp *wexp = ToWagnerExp (L);
+std::deque < pmap > hw;
 
-  cerr <<
-    "************************************************************************"
-    << endl;
+//std::deque < local_map > hw;
 
-  cerr << "Number of elements in the hash: " << ht.size () << endl << endl;
-
-for (auto & elem:hw)
-    {
-      cerr << "[" << elem.first << "]: " << elem.second << endl;
-    }
-
-  cerr <<
-    "************************************************************************"
-    << endl;
-  cerr << "Program is: " << endl << endl;
-
-  if (printw)
-    {
-      //cerr << wexp->to_string () << endl;
-      cerr << wexp << endl;
-    }
-
-  exit (0);
-}
 
 wExp *
 ToWagnerExp (Tree sig)
@@ -124,21 +99,22 @@ ToWagnerExp (Tree sig)
   Tree x, y, z, u, le, id, sel, c, label, ff, largs, type, name, file;
   xtended *p = (xtended *) getUserData (sig);
 
-  // Return value
-  wExp *ret;
-
   ht[sig]++;
+  
+  wExp *ret; // Return value
 
-  // If sig is in hw, then return the cache value.
-  auto iter = hw.find (sig);
+	//cerr << "Number of elements in the stack: " << hw.size () << endl;
+   //local_map iter0 = hw.front() ;
+	pmap iter0 = hw.front();	
 
-  if (iter != hw.end ())
-    {
-      return new wHash ((void *) sig);
-    }
-
+   auto iter = (*iter0).find(sig);
+   if(iter != (*iter0).end())
+	{
+	  return(*iter).second;
+	}
+ 	
   // Else we build a new value.
-  if (isList (sig) && len (sig) == 1)
+  else if (isList (sig) && len (sig) == 1)
     {
       ret = ToWagnerExp (hd (sig));
     }
@@ -153,11 +129,7 @@ ToWagnerExp (Tree sig)
 	  tsig = tl (tsig);
 	}
       while (isList (tsig));
-      //while (!isNil (tsig))
-      //{
-      //vec.push_back (ToWagnerExp (hd (tsig)));
-      //tsig = tl (tsig);
-      //}
+      
       ret = new wTuple (vec, len (sig));
     }
   else if (isProj (sig, &i, x))
@@ -172,7 +144,14 @@ ToWagnerExp (Tree sig)
   //debruijn notation
   else if (isRec (sig, le))
     {
-      ret = new wFeed (ToWagnerExp (le));
+	  //local_map *H = new local_map () ;
+	  //hw.push_front(*H);
+	  pmap H = new local_map () ;
+	  hw.push_front(H);
+	  wExp* e=ToWagnerExp(le);
+	  //(*H)[le]=e ;
+      hw.pop_front();
+      ret = new wFeed (e,*H);
     }
   else if (isRef (sig, i))
     {
@@ -439,13 +418,54 @@ ToWagnerExp (Tree sig)
       ret = new wError ((string) tree2str (sig));
     }
 
-  // Adjouter la valeur:
-  hw[sig] = ret;
-
-  return ret;
+  // Add the value into the table
+	 
+    pair<Tree,wExp*> pr (sig,ret);
+	hw.front()->insert(pr);
+      
+  return new wHash(sig,ret);
 }
 
+void
+WagnerCompiler::compileMultiSignal (Tree L)
+{
+  bool printw = true;
 
+  //local_map initial_map;
+  //hw.push_front(initial_map);
+	pmap m;
+	hw.push_front(m);
+  wExp *wexp = ToWagnerExp (L);
+
+  /*cerr <<
+    "************************************************************************"
+    << endl;
+
+  cerr << "Number of elements in the stack: " << hw.size () << endl;
+
+	std::deque <local_map> :: iterator it = hw.begin();
+    while(it != hw.end())
+	{
+	  cerr<< "Number of elements in the top map inside the stack : "<<hw.front()->size()<<endl;
+	  for(auto & elem : *it)
+		{
+      		cerr << "[" << elem.first << "]: " << elem.second << endl;
+        }
+	  *it++;
+    }
+  cerr <<
+    "************************************************************************"
+    << endl;*/
+
+  cerr << "Program is: " << endl << endl;
+
+  if (printw)
+    {
+      cerr << wexp << endl;
+    }
+
+  exit (0);
+}
 
 void
 WagnerCompiler::compileSingleSignal (Tree sig)

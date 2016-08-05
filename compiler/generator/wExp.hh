@@ -6,7 +6,7 @@
 #include <iostream>
 #include "tree.hh"
 
-using namespace std;
+// using namespace std;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -37,16 +37,16 @@ class wHash:public wExp
 
 public:
 
-  void *ref;
+  Tree tref;
+  wExp *eref;
 
-    wHash (void *ref):ref (ref)
+    wHash (Tree tre,wExp* e):tref (tre),eref(e)
   {
   }
 
   ostream & print (ostream & out) const
   {
-	out<<"P["<< ref <<"]";
-    return out;
+	return out<<"P["<< tref <<"]" ;
   }
 };
 
@@ -237,17 +237,23 @@ class wFeed:public wExp
 
 public:
 
-  //wFeed(std::initializer_list<wExp*> l) : eqns(l) { }
   wExp * exp;
-  wFeed (wExp * ex):exp (ex)
+  std::unordered_map<Tree,wExp*> env;
+
+  wFeed (wExp * e, std::unordered_map<Tree,wExp*> ev) : exp (e),env(ev)
   {
   }
   ostream & print (ostream & out) const
   {
-    out << " Feed = " << exp;
+    out << " Feed = "<< exp ;
+	out<<"\nthe table of Feed\n" ;
+	 for(auto & elem : env)
+		{
+      		out << "\n[[" << elem.first << "]]: " << elem.second << endl;
+        }		
+ 	
     return out;
   }
-
 };
 
 class wFeed1:public wExp
@@ -262,7 +268,7 @@ public:
   }
   ostream & print (ostream & out) const
   {
-    out << "Fees1 =" << x << exp;
+    out << "Feed1 =" << x << exp;
     return out;
   }
 };
@@ -302,12 +308,14 @@ public:
   }
   ostream & print (ostream & out) const
   {
+	out<<"(";
     for (int j = 0; j < n; j++)
       {
 	out << elems[j];
 	if (j < n - 1)
 	  out << ",";
       }
+	out<<")";
     return out;
   }
 
@@ -321,9 +329,9 @@ class wFun:public wExp
 
 public:
 
-  std::vector < wExp * >elems;
   string f_name;
-
+  std::vector < wExp * >elems;
+  
     wFun (string s, std::vector < wExp * >l):f_name (s), elems (l)
   {
   }
@@ -348,10 +356,10 @@ class wUi:public wExp
 
 public:
 
-  std::vector < wExp * >elems;
   string name;
   string label;
-
+  std::vector < wExp * >elems;
+  
     wUi (string s, string lb, std::vector < wExp * >l):name (s), label (lb),
     elems (l)
   {

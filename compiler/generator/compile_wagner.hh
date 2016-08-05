@@ -22,9 +22,9 @@ class WagnerCompiler : public Compiler
 
 protected:
 
-  RateInferrer * fRates;
   bool fHasIota;
-
+  RateInferrer * fRates;
+  
 public:
 
     WagnerCompiler (const string & name, const string & super, int numInputs, int numOutputs) :
