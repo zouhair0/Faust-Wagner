@@ -86,9 +86,7 @@ typedef std::unordered_map<Tree, wExp*> local_map;
 
 typedef local_map* pmap ;
 
-std::deque < pmap > hw;
-
-//std::deque < local_map > hw;
+std::deque < local_map* > hw;
 
 
 wExp *
@@ -105,16 +103,29 @@ ToWagnerExp (Tree sig)
 
 	//cerr << "Number of elements in the stack: " << hw.size () << endl;
    //local_map iter0 = hw.front() ;
-	pmap iter0 = hw.front();	
 
-   auto iter = (*iter0).find(sig);
-   if(iter != (*iter0).end())
+    //browse all the container
+
+	/*std::deque <local_map> :: iterator it = hw.begin();
+    while(it != hw.end())
+	{	
+	  auto iter = it->find(sig);
+	  if(iter != it->end())
+		{
+		  return(*iter).second;
+		}
+	 *it++;
+	}*/
+
+   local_map* iter0 = hw.front();	
+   auto iter = iter0->find(sig);
+   if(iter != iter0->end())
 	{
 	  return(*iter).second;
 	}
  	
   // Else we build a new value.
-  else if (isList (sig) && len (sig) == 1)
+   else if (isList (sig) && len (sig) == 1)
     {
       ret = ToWagnerExp (hd (sig));
     }
@@ -144,14 +155,14 @@ ToWagnerExp (Tree sig)
   //debruijn notation
   else if (isRec (sig, le))
     {
-	  //local_map *H = new local_map () ;
-	  //hw.push_front(*H);
-	  pmap H = new local_map () ;
+	  local_map *H = new local_map (999) ;
 	  hw.push_front(H);
+	  //pmap H = new local_map () ;
+	  //hw.push_front(H);
 	  wExp* e=ToWagnerExp(le);
-	  //(*H)[le]=e ;
+	  //H[sig]=e;
       hw.pop_front();
-      ret = new wFeed (e,*H);
+      ret = new wFeed (e,H);
     }
   else if (isRef (sig, i))
     {
@@ -420,8 +431,8 @@ ToWagnerExp (Tree sig)
 
   // Add the value into the table
 	 
-    pair<Tree,wExp*> pr (sig,ret);
-	hw.front()->insert(pr);
+    std::pair<Tree,wExp*> pr (sig,ret);
+    hw.front()->insert(pr) ;
       
   return new wHash(sig,ret);
 }
@@ -431,31 +442,29 @@ WagnerCompiler::compileMultiSignal (Tree L)
 {
   bool printw = true;
 
-  //local_map initial_map;
-  //hw.push_front(initial_map);
-	pmap m;
-	hw.push_front(m);
+  local_map* initial_map=new local_map(988);
+  hw.push_front(initial_map);
+  //pmap m;
+  //hw.push_front(m);
   wExp *wexp = ToWagnerExp (L);
 
-  /*cerr <<
+  cerr <<
     "************************************************************************"
     << endl;
 
-  cerr << "Number of elements in the stack: " << hw.size () << endl;
+  cerr << "Number of elements in the deque: " << hw.size () << endl;
 
-	std::deque <local_map> :: iterator it = hw.begin();
-    while(it != hw.end())
+    for(auto it = hw.begin(); it != hw.end(); ++it)
 	{
-	  cerr<< "Number of elements in the top map inside the stack : "<<hw.front()->size()<<endl;
-	  for(auto & elem : *it)
+	  cerr<< "Number of elements in the top map inside the deque : "<<hw.front()->size()<<endl;
+	  for(auto elem : **it)
 		{
       		cerr << "[" << elem.first << "]: " << elem.second << endl;
         }
-	  *it++;
     }
   cerr <<
     "************************************************************************"
-    << endl;*/
+    << endl;
 
   cerr << "Program is: " << endl << endl;
 

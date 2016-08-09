@@ -238,18 +238,18 @@ class wFeed:public wExp
 public:
 
   wExp * exp;
-  std::unordered_map<Tree,wExp*> env;
+  std::unordered_map<Tree,wExp*>* env;
 
-  wFeed (wExp * e, std::unordered_map<Tree,wExp*> ev) : exp (e),env(ev)
+  wFeed (wExp * e, std::unordered_map<Tree,wExp*>* ev) : exp (e),env(ev)
   {
   }
   ostream & print (ostream & out) const
   {
     out << " Feed = "<< exp ;
 	out<<"\nthe table of Feed\n" ;
-	 for(auto & elem : env)
+	 for(auto & elem : *env)
 		{
-      		out << "\n[[" << elem.first << "]]: " << elem.second << endl;
+      		out << "\n[" << elem.first << "]: " << elem.second << endl;
         }		
  	
     return out;
