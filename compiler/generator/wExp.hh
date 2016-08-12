@@ -246,11 +246,11 @@ public:
   ostream & print (ostream & out) const
   {
     out << " Feed = "<< exp ;
-	out<<"\nthe table of Feed\n" ;
+	out<<"\nFeed Table\n" ;
 	 for(auto & elem : *env)
 		{
       		out << "\n[" << elem.first << "]: " << elem.second << endl;
-        }		
+        }	
  	
     return out;
   }
