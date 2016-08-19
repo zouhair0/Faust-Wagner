@@ -22,7 +22,7 @@ public:
   wExp ()
   {
   };
-
+//  virtual std::set<Tree> Depend();
   virtual ostream & print (ostream & fout) const = 0;
 
 };
@@ -245,11 +245,17 @@ public:
   }
   ostream & print (ostream & out) const
   {
+	std::map<Tree,wExp*> temp;
+
     out << " Feed = "<< exp ;
 	out<<"\nFeed Table\n" ;
 	 for(auto & elem : *env)
 		{
-      		out << "\n[" << elem.first << "]: " << elem.second << endl;
+	        temp.insert (elem);
+        }	
+	for(std::pair<Tree,wExp*> e : temp)
+		{ 	
+      		out << "\n[" << e.first << "]]: " << e.second << endl;
         }	
  	
     return out;

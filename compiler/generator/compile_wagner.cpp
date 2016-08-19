@@ -75,11 +75,7 @@ int binopp[] = {
 std::unordered_map < Tree, unsigned int >
 ht (65543);
 
-typedef
-  std::unordered_map <
-  Tree,
-  wExp * >
-  local_map;
+typedef std::unordered_map < Tree , wExp * > local_map;
 
 // Cache of translation
 std::deque < local_map * >hw;
@@ -110,17 +106,17 @@ ToWagnerExp (Tree sig)
      return(*iter).second;
      }
      *it++;
-     } */
+     } 
 
-  //std::deque<local_map*>::iterator it = hw.begin();
-  /*      local_map* it = *hw.begin();    
+  std::deque<local_map*>::iterator it = hw.begin();
+        local_map* it = *hw.begin();    
      while(it != *hw.end())
      {    
-     //auto iter = it->find(sig);
-     //if(iter != it->end())
-     //{
-     //return(*iter).second;
-     //}
+     auto iter = it->find(sig);
+     if(iter != it->end())
+     {
+     return(*iter).second;
+     }
      *it++;
      }*/
 
@@ -133,8 +129,9 @@ for (local_map * elem:hw)
 
       if (iter != elem->end ())
 		{
-		  return (*iter).second;
-		  break;
+		  //return (*iter).second;
+	      return new wHash(sig,(*iter).second);
+		  //break;
 		} 
     }
 
@@ -449,6 +446,12 @@ for (local_map * elem:hw)
 	  return new wHash (sig, ret);
 
 }
+/*
+void PrintsortedTable(local_map* hs)
+{
+	
+}*/
+
 
 void
 WagnerCompiler::compileMultiSignal (Tree L)
@@ -456,6 +459,7 @@ WagnerCompiler::compileMultiSignal (Tree L)
   bool printw = true;
   local_map *initial_map = new local_map (988);
   hw.push_front (initial_map);
+  std::map<Tree,wExp*> temp;
 
   wExp *wexp = ToWagnerExp (L);
 
@@ -465,14 +469,26 @@ WagnerCompiler::compileMultiSignal (Tree L)
 
   cerr << "Number of elements in the deque: " << hw.size () << endl;
 
-  for (auto it = hw.begin (); it != hw.end (); ++it)
+  for (auto it = hw.rbegin (); it != hw.rend (); ++it)
     {
       cerr << "Number of elements in the top map inside the deque : " <<
-	hw.front ()->size () << endl;
-    for (auto elem:**it)
+	hw.front ()->size () <<endl;
+
+    for (std::pair<Tree,wExp*> elem : **it)
 	{
-	  cerr << "\n[" << elem.first << "]: " << elem.second << endl;
+	  temp.insert (elem);
 	}
+	for (std::pair<Tree,wExp*> e : temp)
+	{
+		cerr<< "["<<e.first<<"]"<<":"<< e.second<<endl;   
+	}
+	/*std::map<Tree,wExp*>::reverse_iterator rit;
+	 for (rit = temp.rbegin (); rit != temp.rend (); ++rit)
+	{
+		cerr<< rit->first <<":"<< rit->second <<endl;
+	}*/
+	
+
     }
   cerr <<
     "************************************************************************"
